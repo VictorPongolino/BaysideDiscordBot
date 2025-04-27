@@ -1,21 +1,24 @@
 package br.com.pongo.bot.VanZ.command.commands;
 
 import br.com.pongo.bot.VanZ.command.DiscordCommand;
+import br.com.pongo.bot.VanZ.config.ChannelConfiguration;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
-import org.springframework.beans.factory.annotation.Value;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
-public abstract sealed class AbstractDiscordCommand implements DiscordCommand permits ReleaseRiderCommand, StatusCommand, VanCommand {
+public abstract sealed class AbstractDiscordCommand implements DiscordCommand permits BaysideBotCommand, ReleaseRiderCommand, StatusCommand, VanCommand {
 
-    @Value("${bot.van-channel-id}")
-    protected String allowedChannel;
+    private final ChannelConfiguration channelConfiguration;
+
+    protected AbstractDiscordCommand(final ChannelConfiguration channelConfiguration) {
+        this.channelConfiguration = channelConfiguration;
+    }
 
     @Override
     public String getAllowedChannel() {
-        return allowedChannel;
+        return channelConfiguration.getAllowedChannel();
     }
 
     protected Mono<Message> sendSingleMessageToUserChannel(final MessageCreateEvent event, final String message) {

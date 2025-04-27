@@ -1,5 +1,6 @@
 package br.com.pongo.bot.VanZ.command.commands;
 
+import br.com.pongo.bot.VanZ.config.ChannelConfiguration;
 import br.com.pongo.bot.VanZ.domain.CompanyVehicle;
 import br.com.pongo.bot.VanZ.service.VanAllocationService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
@@ -12,11 +13,18 @@ import java.util.Optional;
 
 
 @Component
-@RequiredArgsConstructor
 public final class VanCommand extends AbstractDiscordCommand {
 
     private final CompanyVehicle companyVehicle;
     private final VanAllocationService vanAllocationService;
+
+    private VanCommand(final ChannelConfiguration channelConfiguration,
+                      final CompanyVehicle companyVehicle,
+                      final VanAllocationService vanAllocationService) {
+        super(channelConfiguration);
+        this.companyVehicle = companyVehicle;
+        this.vanAllocationService = vanAllocationService;
+    }
 
     @Override
     public String getName() {

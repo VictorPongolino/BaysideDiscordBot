@@ -1,19 +1,22 @@
 package br.com.pongo.bot.VanZ.command.commands;
 
+import br.com.pongo.bot.VanZ.config.ChannelConfiguration;
 import br.com.pongo.bot.VanZ.domain.CompanyVehicle;
-import br.com.pongo.bot.VanZ.service.VanAllocationService;
 import br.com.pongo.bot.VanZ.service.VehicleStateService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 
 @Component
-@RequiredArgsConstructor
 public final class ReleaseRiderCommand extends AbstractDiscordCommand {
 
     private final VehicleStateService vanAllocationService;
+
+    private ReleaseRiderCommand(final ChannelConfiguration channelConfiguration, VehicleStateService vanAllocationService) {
+        super(channelConfiguration);
+        this.vanAllocationService = vanAllocationService;
+    }
 
     @Override
     public String getName() {

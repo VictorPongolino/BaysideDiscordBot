@@ -1,20 +1,27 @@
 package br.com.pongo.bot.VanZ.command.commands;
 
+import br.com.pongo.bot.VanZ.config.ChannelConfiguration;
 import br.com.pongo.bot.VanZ.domain.VehicleInteractionConfig;
 import br.com.pongo.bot.VanZ.service.VehicleStateService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
 @Component
-@RequiredArgsConstructor
 public final class StatusCommand extends AbstractDiscordCommand {
 
     private final VehicleStateService vehicleStateService;
     private final VehicleInteractionConfig vehicleInteractionConfig;
+
+    private StatusCommand(final ChannelConfiguration channelConfiguration,
+                          final VehicleStateService vehicleStateService,
+                          final VehicleInteractionConfig vehicleInteractionConfig) {
+        super(channelConfiguration);
+        this.vehicleStateService = vehicleStateService;
+        this.vehicleInteractionConfig = vehicleInteractionConfig;
+    }
 
     @Override
     public String getName() {
