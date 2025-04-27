@@ -32,7 +32,7 @@ public class InteractionTimeUpListener {
             chatMessage.append("\n");
 
             if (!passengerInBayside.isBlank()) {
-                chatMessage.append("\nLá você deverá aguardar pelos seguintes jogadores:\n");
+                chatMessage.append("\nLá você deverá aguardar pelos seguintes jogadores:");
                 chatMessage.append(delimiter);
                 chatMessage.append(passengerInBayside);
             }
@@ -42,13 +42,13 @@ public class InteractionTimeUpListener {
             String passengerOnSite = getPassengersByMeetUp(Passenger.MeetUpPreference.ONSITE);
 
             if (!passengerOnSite.isEmpty()) {
-                chatMessage.append(" Porém, aguarde pelos jogadores:\n");
+                chatMessage.append(" Porém, aguarde pelos jogadores:");
                 chatMessage.append(delimiter);
                 chatMessage.append(passengerOnSite);
             }
 
             if (!passengerInBayside.isEmpty()) {
-                chatMessage.append("\n\nAo chegar em Bayside, aguarde pelos jogadores:\n");
+                chatMessage.append("\n\nAo chegar em Bayside, aguarde pelos jogadores:");
                 chatMessage.append(delimiter);
                 chatMessage.append(passengerInBayside);
             }
