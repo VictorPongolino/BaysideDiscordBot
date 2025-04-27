@@ -1,5 +1,6 @@
 package br.com.pongo.bot.VanZ.domain;
 
+import br.com.pongo.bot.VanZ.domain.CompanyVehicle.Passenger.MeetUpPreference;
 import br.com.pongo.bot.VanZ.exception.MaximumEmployeeParticipantsReachedException;
 import lombok.Builder;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -103,6 +105,11 @@ public final class CompanyVehicle {
 
     public void resetPassengers() {
         Arrays.fill(passengers, NO_EMPLOYEE);
+    }
+
+    public List<Passenger> getPassengersByMeetUp(final MeetUpPreference meetUpPreference) {
+        return Stream.of(passengers)
+                .filter(passenger -> passenger != null && passenger.getMeetUpPreference() != null && passenger.getMeetUpPreference().equals(meetUpPreference)).toList();
     }
 
     public enum OwnerMeetUpPlace {

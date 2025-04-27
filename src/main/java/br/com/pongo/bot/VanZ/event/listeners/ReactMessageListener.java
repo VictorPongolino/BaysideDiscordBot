@@ -53,7 +53,6 @@ public class ReactMessageListener implements EventListener<ReactionAddEvent> {
                     if (vehicleStateService.isAlreadyDeparted()) {
                         var isOwner = vehicleStateService.getCompanyVehicle().getOwnerId() == event.getUserId().asLong();
                         if (!isNoneReaction(event) || !isOwner) {
-                            log.warn("User interacted with the message after the time up!");
                             return undoNotAllowedParticipantUserReactionForTimeUpInteractions(event, message).thenReturn(false);
                         }
                     }

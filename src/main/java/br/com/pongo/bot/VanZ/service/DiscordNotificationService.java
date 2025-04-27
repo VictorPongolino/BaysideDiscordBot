@@ -51,12 +51,4 @@ public class DiscordNotificationService {
                         )
         );
     }
-
-    public void releaseVehicleToCommute(final Long userId, final Mono<MessageChannel> channel) {
-        String chatMessage = """
-                <@%d> esta liberado para ir até Bayside!
-                """.formatted(userId);
-
-        channel.flatMap(msgChannel -> msgChannel.createMessage(chatMessage)).subscribe();
-    }
 }
