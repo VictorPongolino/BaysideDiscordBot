@@ -30,10 +30,13 @@ public final class ReleaseRiderCommand extends AbstractDiscordCommand {
             return Mono.empty();
         }
 
-        companyVehicle.resetRide();
-
         sendSingleMessageToUserChannel(event, "<@%d> forçou a liberação da van alocado antes por <@%d>".formatted(event.getMessage().getUserData().id().asLong(), companyVehicle.getOwnerId()))
+                .then(Mono.defer(() -> {
+                    companyVehicle.resetRide();
+                    return Mono.empty();
+                }))
                 .subscribe();
+
         return Mono.empty();
     }
 }
