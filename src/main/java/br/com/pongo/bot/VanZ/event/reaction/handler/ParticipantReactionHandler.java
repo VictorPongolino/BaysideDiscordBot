@@ -1,5 +1,6 @@
 package br.com.pongo.bot.VanZ.event.reaction.handler;
 
+import br.com.pongo.bot.VanZ.domain.CompanyVehicle;
 import br.com.pongo.bot.VanZ.domain.CompanyVehicle.Passenger;
 import br.com.pongo.bot.VanZ.domain.CompanyVehicle.Passenger.MeetUpPreference;
 import br.com.pongo.bot.VanZ.event.reaction.ReactionInteractionHandler;
@@ -14,6 +15,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 import java.util.Optional;
+
+import static br.com.pongo.bot.VanZ.domain.CompanyVehicle.OwnerMeetUpPlace.BAYSIDE;
 import static br.com.pongo.bot.VanZ.domain.CompanyVehicle.Passenger.MeetUpPreference.*;
 
 
@@ -32,20 +35,24 @@ public class ParticipantReactionHandler implements ReactionInteractionHandler {
             return Mono.empty();
         }
 
+        if (vehicleStateService.getCompanyVehicle().getOwnerMeetUpPlace().equals(BAYSIDE)){
+            return sendSingleMessage(event, "<@%d> você não pode definir seu ponto de coleta como sendo a empresa visto que o ponto de encontro de <@%d> é em bayside.".formatted(userId, vehicleStateService.getCompanyVehicle().getOwnerId()));
+        }
+
         vehicleStateService.addPassengerOrUpdateToOnsite(userId);
 
-        return sendSingleMessage(event, "<@%d> escolheu o seu ponto de encontro como sendo a empresa !".formatted(userId));
+        return sendSingleMessage(event, "<@%d> definiu o ponto de encontro dele como sendo a empresa !".formatted(userId));
     }
 
     @Override
     public Mono<Void> doBaysideInteractionHandler(final ReactionAddEvent event) {
         long userIdentifier = event.getUserId().asLong();
-        if (hasPlayerReactedPreviouslyWith(userIdentifier, BAYSIDE)) {
+        if (hasPlayerReactedPreviouslyWith(userIdentifier, MeetUpPreference.BAYSIDE)) {
             return Mono.empty();
         }
 
         vehicleStateService.addPassengerToBayside(event.getUserId().asLong());
-        return sendSingleMessage(event, "<@%d> escolheu o seu ponto de encontro como sendo Bayside !".formatted(userIdentifier));
+        return sendSingleMessage(event, "<@%d> definiu o ponto de encontro dele como sendo Bayside !".formatted(userIdentifier));
     }
 
     @Override
