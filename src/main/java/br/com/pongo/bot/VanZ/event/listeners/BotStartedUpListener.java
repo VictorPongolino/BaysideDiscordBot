@@ -40,7 +40,9 @@ public class BotStartedUpListener implements EventListener<ReadyEvent> {
         gatewayDiscordClient.getChannelById(Snowflake.of(channelId))
                 .ofType(MessageChannel.class)
                 .flatMapMany(messageChannel ->
-                    messageChannel.getMessagesBefore(Snowflake.of(Instant.now().minus(Duration.ofHours(1)))).collectList()
+                    messageChannel.getMessagesBefore(Snowflake.of(Instant.now().minus(Duration.ofHours(1))))
+                            .filter(message -> !message.isPinned())
+                            .collectList()
                 )
                 .flatMap(messages -> {
                     if (messages.isEmpty()) {
