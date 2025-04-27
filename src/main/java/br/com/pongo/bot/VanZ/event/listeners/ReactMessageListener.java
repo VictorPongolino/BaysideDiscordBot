@@ -42,55 +42,34 @@ public class ReactMessageListener implements EventListener<ReactionAddEvent> {
     public Mono<ReactionAddEvent> filter(final ReactionAddEvent event) {
         return event.getUser()
                 .filter(user -> !user.isBot())
-                .filter(user -> isReactionValidEmojiInteraction(event))
-                .flatMap(user ->
-                        undoPreviousUserReactions(event)
-                )
+                .filter(user -> vehicleStateService.getCompanyVehicle().hasOwner())
                 .flatMap(user -> event.getMessage()
                         .filter(this::isMessageFromTheBot)
                         .filterWhen(this::isMessageBelongToVehicleChannel)
-                        .map(x -> event)
-                );
-    }
-
-
-
-    @Override
-    public Mono<Void> execute(final ReactionAddEvent event) {
-        event.getUser().flatMap(user -> handleReaction(event)).subscribe();
-        return Mono.empty();
-    }
-
-    private Mono<Message> handleReaction(final ReactionAddEvent event) {
-        return event.getMessage()
-                .flatMapMany(message ->
-                        verifyUsersAuthorityToInteractWith(event, message)
+                        .filterWhen(message -> filterUserReacted(event, user, message))
                 )
-                .next()
-                .flatMap(user -> {
-                    final long userIdentifier = user.getId().asLong();
-                    return reactionInteractionDelegator.delegate(userIdentifier, event)
-                            .then(Mono.empty());
-                });
-    }
-
-    private Mono<User> verifyUsersAuthorityToInteractWith(final ReactionAddEvent event, final Message message) {
-        return message.getReactors(event.getEmoji())
-                .filter(reactUser -> reactUser.getId().asLong() == event.getUserId().asLong())
-                .next()
-                .filter(reactUser -> vehicleStateService.getCompanyVehicle().hasOwner())
-                .filterWhen(reactUser -> {
-                    var isOwner = vehicleStateService.getCompanyVehicle().getOwnerId() == reactUser.getId().asLong();
-                    isNoneReaction(event);
-
+                .filter(message -> isReactionValidEmojiInteraction(event))
+                .filterWhen(message -> {
                     if (vehicleStateService.isAlreadyDeparted()) {
+                        var isOwner = vehicleStateService.getCompanyVehicle().getOwnerId() == event.getUserId().asLong();
                         if (!isNoneReaction(event) || !isOwner) {
                             log.warn("User interacted with the message after the time up!");
                             return undoNotAllowedParticipantUserReactionForTimeUpInteractions(event, message).thenReturn(false);
                         }
                     }
                     return Mono.just(true);
-                });
+                })
+                .flatMap(message -> undoPreviousUserReactions(event))
+                .map(x -> event);
+    }
+
+    @Override
+    public Mono<Void> execute(final ReactionAddEvent event) {
+        event.getUser().flatMap(user -> {
+            final long userIdentifier = user.getId().asLong();
+            return reactionInteractionDelegator.delegate(userIdentifier, event).then(Mono.empty());
+        }).subscribe();
+        return Mono.empty();
     }
 
     private Mono<ReactionAddEvent> undoPreviousUserReactions(final ReactionAddEvent event) {
@@ -121,7 +100,7 @@ public class ReactMessageListener implements EventListener<ReactionAddEvent> {
                 .then(message.getChannel())
                 .flatMap(channel ->
                         channel.createMessage("<@%d> tempo exedido.\n> Novas interações não são permitidas.".formatted(event.getUserId().asLong()))
-                                .delayElement(Duration.ofSeconds(5))
+                                .delayElement(Duration.ofSeconds(30))
                                 .flatMap(Message::delete)
                 );
     }
@@ -138,6 +117,12 @@ public class ReactMessageListener implements EventListener<ReactionAddEvent> {
                 .orElse(false);
     }
 
+    private Mono<Boolean> filterUserReacted(ReactionAddEvent event, User user, Message message) {
+        return message.getReactors(event.getEmoji())
+                .filter(reactUser -> reactUser.getId().asLong() == user.getId().asLong())
+                .next().hasElement();
+    }
+
     private Boolean isReactionValidEmojiInteraction(final ReactionAddEvent event) {
         return event.getEmoji()
                     .asUnicodeEmoji()
@@ -151,11 +136,3 @@ public class ReactMessageListener implements EventListener<ReactionAddEvent> {
         return optional.isPresent() && optional.get().equals(vehicleInteractionConfig.getNoneMeeting());
     }
 }
-
-//                    Snowflake snowflake = Snowflake.of("708785302805807218");
-//
-//                    gatewayDiscordClient.getChannelById(snowflake)
-//                            .ofType(MessageChannel.class)
-//                            .flatMap(messageChannel -> {
-//                                messageChannel.getMessagesBefore(Snowflake.of())
-//                            })

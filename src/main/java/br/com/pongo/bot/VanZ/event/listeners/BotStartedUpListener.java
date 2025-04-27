@@ -1,5 +1,6 @@
 package br.com.pongo.bot.VanZ.event.listeners;
 
+import br.com.pongo.bot.VanZ.config.ChannelConfiguration;
 import br.com.pongo.bot.VanZ.event.EventListener;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
@@ -8,7 +9,6 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -22,12 +22,12 @@ import java.util.List;
 @Component
 public class BotStartedUpListener implements EventListener<ReadyEvent> {
 
-    private final String channelId;
+    private final ChannelConfiguration channelConfiguration;
     private final GatewayDiscordClient gatewayDiscordClient;
 
-    public BotStartedUpListener(@Value("${bot.van-channel-id}") final String channelId,
+    public BotStartedUpListener(final ChannelConfiguration channelConfiguration,
                                 @Lazy final GatewayDiscordClient gatewayDiscordClient) {
-        this.channelId = channelId;
+        this.channelConfiguration = channelConfiguration;
         this.gatewayDiscordClient = gatewayDiscordClient;
     }
 
@@ -38,23 +38,23 @@ public class BotStartedUpListener implements EventListener<ReadyEvent> {
 
     @Override
     public Mono<Void> execute(final ReadyEvent event) {
-        gatewayDiscordClient.getChannelById(Snowflake.of(channelId))
+        gatewayDiscordClient.getChannelById(Snowflake.of(channelConfiguration.getAllowedChannel()))
                 .ofType(MessageChannel.class)
                 .flatMapMany(messageChannel ->
-                    messageChannel.getMessagesBefore(Snowflake.of(Instant.now().minus(Duration.ofHours(1))))
+                    messageChannel.getMessagesBefore(Snowflake.of(Instant.now().minus(Duration.ofMinutes(30))))
                             .filter(message -> !message.isPinned())
                             .collectList()
                 )
                 .flatMap(messages -> {
                     if (messages.isEmpty()) {
-                        log.info("No messages to exclude from the channel in {}", channelId);
+                        log.info("No messages to exclude from the channel in {}", channelConfiguration.getAllowedChannel());
                         return Mono.empty();
                     }
 
                     return messages.getFirst().getChannel().flatMap(messageChannel -> {
                         if (messageChannel instanceof TextChannel textChannel) {
                             if (messages.size() > 1) {
-                                log.info("Excluding in bulk {} messages in the channel id {} ", messages.size(), channelId);
+                                log.info("Excluding in bulk {} messages in the channel id {} ", messages.size(), channelConfiguration.getAllowedChannel());
                                 return textChannel.bulkDeleteMessages(Flux.fromIterable(messages))
                                         .onErrorResume(e -> {
                                             log.error("Failed to exclude bulk messages. {}", e.getMessage());
@@ -73,7 +73,7 @@ public class BotStartedUpListener implements EventListener<ReadyEvent> {
     }
 
     private Mono<Void> deleteMessagesSequentially(final List<Message> messages) {
-        log.info("Excluding sequentially the total of {} messages in the channel id {} ", messages.size(), channelId);
+        log.info("Excluding sequentially the total of {} messages in the channel id {} ", messages.size(), channelConfiguration.getAllowedChannel());
         return Flux.fromIterable(messages)
                 .flatMap(message -> message.delete()
                         .onErrorResume(e -> {
