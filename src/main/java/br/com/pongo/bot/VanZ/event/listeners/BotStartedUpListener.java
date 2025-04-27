@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 @Log4j2
 @Component
@@ -54,25 +55,31 @@ public class BotStartedUpListener implements EventListener<ReadyEvent> {
                         if (messageChannel instanceof TextChannel textChannel) {
                             if (messages.size() > 1) {
                                 log.info("Excluding in bulk {} messages in the channel id {} ", messages.size(), channelId);
-                                return textChannel.bulkDeleteMessages(Flux.fromIterable(messages)).then();
+                                return textChannel.bulkDeleteMessages(Flux.fromIterable(messages))
+                                        .onErrorResume(e -> {
+                                            log.error("Failed to exclude bulk messages. {}", e.getMessage());
+                                            deleteMessagesSequentially(messages);
+                                            return Mono.empty();
+                                        }).then();
                             }
                         }
 
-                        return Mono.empty();
-                    })
-                    .switchIfEmpty(Mono.defer(() -> {
-                        log.info("Excluding sequentially the total of {} messages in the channel id {} ", messages.size(), channelId);
-                        return Flux.fromIterable(messages)
-                                .flatMap(message -> message.delete()
-                                        .onErrorResume(e -> {
-                                            log.error("Failed to exclude one message sequentially. {}", e.getMessage());
-                                            return Mono.empty();
-                                        }))
-                                .then();
-                    }));
+                        return deleteMessagesSequentially(messages);
+                    });
                 })
                 .subscribe();
 
         return Mono.empty();
+    }
+
+    private Mono<Void> deleteMessagesSequentially(final List<Message> messages) {
+        log.info("Excluding sequentially the total of {} messages in the channel id {} ", messages.size(), channelId);
+        return Flux.fromIterable(messages)
+                .flatMap(message -> message.delete()
+                        .onErrorResume(e -> {
+                            log.error("Failed to exclude one message sequentially. {}", e.getMessage());
+                            return Mono.empty();
+                        }))
+                .then();
     }
 }
