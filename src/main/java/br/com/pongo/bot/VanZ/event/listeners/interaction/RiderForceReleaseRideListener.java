@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Log4j2
 @RequiredArgsConstructor
-public class RiderReleaseRideListener {
+public class RiderForceReleaseRideListener {
 
     private final RideReleaseService rideReleaseService;
     private final ApplicationEventPublisher applicationEventPublisher;
