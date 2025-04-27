@@ -1,8 +1,6 @@
-package br.com.pongo.bot.VanZ.service.interaction;
+package br.com.pongo.bot.VanZ.event.listeners.interaction;
 
-import br.com.pongo.bot.VanZ.service.DiscordNotificationService;
 import br.com.pongo.bot.VanZ.service.EventPublisherService.CommutingRequestStarted;
-import br.com.pongo.bot.VanZ.service.interaction.NewInteractionWindowListener.InteractionTimeUpEvent;
 import discord4j.core.object.entity.Message;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +9,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 

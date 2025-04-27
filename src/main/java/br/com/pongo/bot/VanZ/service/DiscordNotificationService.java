@@ -1,10 +1,15 @@
 package br.com.pongo.bot.VanZ.service;
 
+import br.com.pongo.bot.VanZ.config.ChannelConfiguration;
 import br.com.pongo.bot.VanZ.domain.VehicleInteractionConfig;
 import br.com.pongo.bot.VanZ.domain.VehicleInteractionConfig.MeetingDetails;
+import discord4j.common.util.Snowflake;
+import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
+import discord4j.discordjson.json.MessageData;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +22,9 @@ import static br.com.pongo.bot.VanZ.domain.VehicleInteractionConfig.MeetUpIntera
 @RequiredArgsConstructor
 public class DiscordNotificationService {
     private final VehicleInteractionConfig vehicleInteractionConfig;
+    private final GatewayDiscordClient gatewayDiscordClient;
+    private final ChannelConfiguration channelConfiguration;
+
     private MeetingDetails onSite;
     private MeetingDetails bayside;
     private MeetingDetails none;
@@ -50,5 +58,17 @@ public class DiscordNotificationService {
                                 ).then(Mono.just(message))
                         )
         );
+    }
+
+    public Mono<MessageData> createMessageForChannel(final Snowflake channel, final String chatMessage) {
+        return gatewayDiscordClient.getChannelById(channel)
+                .map(Channel::getRestChannel)
+                .flatMap(restChannel ->
+                        restChannel.createMessage(chatMessage)
+                );
+    }
+
+    public Mono<MessageData> createMessageForAllowedChannel(final String chatMessage) {
+        return createMessageForChannel(channelConfiguration.getAllowedChannelAsSnowFlake(), chatMessage);
     }
 }

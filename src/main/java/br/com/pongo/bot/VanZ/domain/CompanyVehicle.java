@@ -29,12 +29,14 @@ public final class CompanyVehicle {
     public CompanyVehicle() {
         resetPassengers();
         meetUpStatus = MeetUpStatus.NONE;
+        ownerMeetUpPlace = OwnerMeetUpPlace.ABORTED;
         ownerId = NO_OWNER;
     }
 
     public void resetRide() {
         this.ownerId = NO_OWNER;
         meetUpStatus = MeetUpStatus.NONE;
+        ownerMeetUpPlace = OwnerMeetUpPlace.ABORTED;
         resetPassengers();
     }
 
@@ -99,7 +101,7 @@ public final class CompanyVehicle {
         return ownerMeetUpPlace;
     }
 
-    public void setOwnerMeetUpPlace(OwnerMeetUpPlace ownerMeetUpPlace) {
+    public void setOwnerMeetUpPlace(final OwnerMeetUpPlace ownerMeetUpPlace) {
         this.ownerMeetUpPlace = ownerMeetUpPlace;
     }
 
@@ -112,8 +114,16 @@ public final class CompanyVehicle {
                 .filter(passenger -> passenger != null && passenger.getMeetUpPreference() != null && passenger.getMeetUpPreference().equals(meetUpPreference)).toList();
     }
 
+    public boolean isActive() {
+        return hasOwner() && !ownerMeetUpPlace.equals(OwnerMeetUpPlace.ABORTED);
+    }
+
+    public boolean isAborted() {
+        return !ownerMeetUpPlace.equals(OwnerMeetUpPlace.ABORTED);
+    }
+
     public enum OwnerMeetUpPlace {
-        DEFAULT, ONSITE, BAYSIDE
+        DEFAULT, ONSITE, BAYSIDE, ABORTED
     }
 
     @Builder @Getter

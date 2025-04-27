@@ -64,11 +64,10 @@ public class ReactMessageListener implements EventListener<ReactionAddEvent> {
 
     @Override
     public Mono<Void> execute(final ReactionAddEvent event) {
-        event.getUser().flatMap(user -> {
+        return event.getUser().flatMap(user -> {
             final long userIdentifier = user.getId().asLong();
             return reactionInteractionDelegator.delegate(userIdentifier, event).then(Mono.empty());
-        }).subscribe();
-        return Mono.empty();
+        });
     }
 
     private Mono<ReactionAddEvent> undoPreviousUserReactions(final ReactionAddEvent event) {
@@ -97,10 +96,14 @@ public class ReactMessageListener implements EventListener<ReactionAddEvent> {
     private Mono<Void> undoNotAllowedParticipantUserReactionForTimeUpInteractions(final ReactionAddEvent event, final Message message) {
         return message.removeReaction(event.getEmoji(), event.getUserId())
                 .then(message.getChannel())
-                .flatMap(channel ->
-                        channel.createMessage("<@%d> tempo exedido.\n> Novas interações não são permitidas.".formatted(event.getUserId().asLong()))
-                                .delayElement(Duration.ofSeconds(30))
-                                .flatMap(Message::delete)
+                .flatMap(channel -> {
+                            String chatMessage = """
+                                        <@%d> tempo exedido.\n> Novas interações não são permitidas.
+                                        """.formatted(event.getUserId().asLong());
+                            return channel.createMessage(chatMessage)
+                                    .delayElement(Duration.ofSeconds(30))
+                                    .flatMap(Message::delete);
+                        }
                 );
     }
 

@@ -1,16 +1,18 @@
-package br.com.pongo.bot.VanZ.service.interaction;
+package br.com.pongo.bot.VanZ.event.listeners.interaction;
 
 import br.com.pongo.bot.VanZ.domain.CompanyVehicle.OwnerMeetUpPlace;
-import br.com.pongo.bot.VanZ.domain.CompanyVehicle.Passenger;
+import br.com.pongo.bot.VanZ.domain.CompanyVehicle.Passenger.MeetUpPreference;
 import br.com.pongo.bot.VanZ.service.DiscordNotificationService;
 import br.com.pongo.bot.VanZ.service.VehicleStateService;
-import br.com.pongo.bot.VanZ.service.interaction.NewInteractionWindowListener.InteractionTimeUpEvent;
+import br.com.pongo.bot.VanZ.event.listeners.interaction.NewInteractionWindowListener.InteractionTimeUpEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
 
 @Component
+@Log4j2
 @RequiredArgsConstructor
 public class InteractionTimeUpListener {
 
@@ -25,7 +27,8 @@ public class InteractionTimeUpListener {
         chatMessage.append("<@%d> está liberado para ir até ".formatted(event.getUserId()));
 
         final String delimiter = "\n - ";
-        String passengerInBayside = getPassengersByMeetUp(Passenger.MeetUpPreference.BAYSIDE);
+        String passengerInBayside = getPassengersByMeetUp(MeetUpPreference.BAYSIDE, delimiter);
+        log.info("Passengers in Bayside: '{}' (Length: {})", passengerInBayside, passengerInBayside.length());
 
         if (isOwnerMeetingUpAt(OwnerMeetUpPlace.ONSITE) || isOwnerMeetingUpAt(OwnerMeetUpPlace.DEFAULT)) {
             chatMessage.append("Bayside");
@@ -39,7 +42,8 @@ public class InteractionTimeUpListener {
         } else {
             chatMessage.append("a Empresa.");
 
-            String passengerOnSite = getPassengersByMeetUp(Passenger.MeetUpPreference.ONSITE);
+            String passengerOnSite = getPassengersByMeetUp(MeetUpPreference.ONSITE, delimiter);
+            log.info("Passengers onsite: '{}' (Length: {})", passengerOnSite, passengerOnSite.length());
 
             if (!passengerOnSite.isEmpty()) {
                 chatMessage.append(" Porém, aguarde pelos jogadores:");
@@ -61,16 +65,16 @@ public class InteractionTimeUpListener {
                 .subscribe();
     }
 
-    private boolean isOwnerMeetingUpAt(OwnerMeetUpPlace ownerMeetUpPlace) {
+    private boolean isOwnerMeetingUpAt(final OwnerMeetUpPlace ownerMeetUpPlace) {
         return vehicleStateService.getCompanyVehicle().getOwnerMeetUpPlace().equals(ownerMeetUpPlace);
     }
 
-    private String getPassengersByMeetUp(Passenger.MeetUpPreference meetUpPreference) {
+    private String getPassengersByMeetUp(final MeetUpPreference meetUpPreference, final String delimiter) {
         return vehicleStateService
                 .getCompanyVehicle()
                 .getPassengersByMeetUp(meetUpPreference)
                 .stream()
                 .map(passenger -> "<@%d>".formatted(passenger.getUserIdentifier()))
-                .collect(Collectors.joining("\n - "));
+                .collect(Collectors.joining(delimiter));
     }
 }
