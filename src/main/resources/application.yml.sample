@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: VanZ
+
+bot:
+  key:
+  van-channel-id:
+
+interaction:
+  meeting:
+    onSite:
+      unicodeEmoji: "🏢"
+    bayside:
+      unicodeEmoji: "🏖️"
+    none:
+      unicodeEmoji: "🚫"
