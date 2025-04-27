@@ -70,8 +70,7 @@ public class InteractionTimeUpListener {
                 .getCompanyVehicle()
                 .getPassengersByMeetUp(meetUpPreference)
                 .stream()
-                .map(Passenger::getUserIdentifier)
-                .map(String::valueOf)
+                .map(passenger -> "<@%d>".formatted(passenger.getUserIdentifier()))
                 .collect(Collectors.joining("\n - "));
     }
 }

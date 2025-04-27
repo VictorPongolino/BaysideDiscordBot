@@ -32,10 +32,10 @@ public final class BaysideBotCommand extends AbstractDiscordCommand {
         final String chatMessage = """
         ✨ Para garantir _uma melhor organização e facilitar o transporte em grupo_, o usuário **deve** informar que está com a 🚐 utilizando o comando **!van**.
         
-        Ao usar !van, o bot criará uma mensagem interativa no <#%s>. Nessa mensagem, outros usuários poderão registrar onde estão — informando, por exemplo, se estão na empresa ou em Bayside. 
-        Essa interação é feita via emojis atreladas na mensagem.
+        Ao usar !van, o bot criará uma mensagem interativa no <#%s>. Nessa mensagem, outros usuários poderão registrar onde estão — informando, por exemplo, se estão na empresa ou em Bayside. Essa interação é feita via emojis atreladas na mensagem.
         
         Essa interação ficará aberta por 1 minuto. Durante esse tempo, os interessados devem se posicionar na mensagem.
+        
         Após a contagem regressiva de 1 minuto, a 🚐 estará liberada para seguir viagem, e o usuário que iniciou o comando (o dono da van) poderá ir até os colegas para buscá-los.
         
         > ✨ Importante: 
